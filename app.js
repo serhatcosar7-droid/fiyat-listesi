@@ -41,6 +41,7 @@ const productCards = document.querySelector("#productCards");
 const productCount = document.querySelector("#productCount");
 const emptyState = document.querySelector("#emptyState");
 const fetchRateButton = document.querySelector("#fetchRateButton");
+const manualRate = document.querySelector("#manualRate");
 const buyRate = document.querySelector("#buyRate");
 const sellRate = document.querySelector("#sellRate");
 const rateStatus = document.querySelector("#rateStatus");
@@ -107,6 +108,7 @@ cancelEditButton.addEventListener("click", resetProductForm);
 
 searchInput.addEventListener("input", renderProducts);
 fetchRateButton.addEventListener("click", fetchIsbankRate);
+manualRate.addEventListener("change", saveManualRate);
 
 productTableBody.addEventListener("click", handleProductAction);
 productCards.addEventListener("click", handleProductAction);
@@ -242,7 +244,7 @@ async function fetchIsbankRate() {
     renderExchangeRate();
     renderProducts();
   } catch (error) {
-    rateStatus.textContent = "İş Bankası kuru otomatik alınamadı. Lütfen tekrar deneyin.";
+    rateStatus.textContent = "İş Bankası kuru otomatik alınamadı. Manuel satış kuru girebilirsiniz.";
   } finally {
     fetchRateButton.disabled = false;
   }
@@ -266,6 +268,26 @@ function parseTurkishNumber(value) {
   return Number(value.replace(/\./g, "").replace(",", "."));
 }
 
+function saveManualRate() {
+  const rate = Number(manualRate.value);
+
+  if (!Number.isFinite(rate) || rate <= 0) {
+    rateStatus.textContent = "Manuel kur için geçerli bir sayı girin.";
+    return;
+  }
+
+  exchangeRate = {
+    buy: null,
+    sell: rate,
+    source: "Manuel",
+    updatedAt: new Date().toISOString()
+  };
+
+  saveExchangeRate();
+  renderExchangeRate();
+  renderProducts();
+}
+
 function renderExchangeRate() {
   if (!exchangeRate) {
     buyRate.textContent = "-";
@@ -275,6 +297,7 @@ function renderExchangeRate() {
 
   buyRate.textContent = exchangeRate.buy ? formatRate(exchangeRate.buy) : "-";
   sellRate.textContent = formatRate(exchangeRate.sell);
+  manualRate.value = exchangeRate.source === "Manuel" ? exchangeRate.sell : "";
 
   const updatedText = new Date(exchangeRate.updatedAt).toLocaleString("tr-TR");
   rateStatus.textContent = `${exchangeRate.source} satış kuru kullanılıyor. Güncelleme: ${updatedText}`;
