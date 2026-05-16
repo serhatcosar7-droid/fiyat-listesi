@@ -293,22 +293,9 @@ input:focus {
 }
 
 .rate-actions {
-  display: grid;
-  grid-template-columns: auto minmax(140px, 1fr);
-  gap: 8px 10px;
-  align-items: end;
-}
-
-.rate-actions label {
-  grid-column: 2;
-}
-
-.rate-actions input {
-  grid-column: 2;
-}
-
-.rate-actions button {
-  grid-row: 1 / 3;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .search-box {
@@ -487,14 +474,6 @@ td {
 @media (max-width: 860px) {
   .rate-panel {
     grid-template-columns: 1fr;
-  }
-
-  .rate-actions,
-  .rate-actions label,
-  .rate-actions input,
-  .rate-actions button {
-    grid-column: auto;
-    grid-row: auto;
   }
 
   .form-grid {
