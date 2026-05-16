@@ -223,7 +223,8 @@ async function fetchIsbankRate() {
     const response = await fetch(RATE_API_URL, { cache: "no-store" });
 
     if (!response.ok) {
-      throw new Error("Kur API yanıt vermedi.");
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.detail || errorData?.error || "Kur API yanıt vermedi.");
     }
 
     const parsedRate = await response.json();
@@ -231,7 +232,7 @@ async function fetchIsbankRate() {
     exchangeRate = {
       buy: parsedRate.buy,
       sell: parsedRate.sell,
-      source: "İş Bankası",
+      source: parsedRate.source || "İş Bankası",
       updatedAt: parsedRate.updatedAt || new Date().toISOString()
     };
 
