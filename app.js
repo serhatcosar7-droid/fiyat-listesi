@@ -4,8 +4,7 @@ const EDIT_PASSWORD = "483228";
 
 const STORAGE_KEY = "meteksan-product-prices";
 const RATE_STORAGE_KEY = "meteksan-isbank-usd-rate";
-const ISBANK_RATE_URL = "https://www.isbank.com.tr/doviz-kurlari";
-const RATE_PROXY_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(ISBANK_RATE_URL);
+const RATE_API_URL = "/api/isbank-rate";
 
 const defaultProducts = [
   { id: createId(), name: "Karpit", cost: 0.75, sale: 1.00 },
@@ -221,23 +220,19 @@ async function fetchIsbankRate() {
   rateStatus.textContent = "İş Bankası kuru alınıyor...";
 
   try {
-    const response = await fetch(RATE_PROXY_URL, { cache: "no-store" });
+    const response = await fetch(RATE_API_URL, { cache: "no-store" });
 
     if (!response.ok) {
-      throw new Error("Kur sayfasına ulaşılamadı.");
+      throw new Error("Kur API yanıt vermedi.");
     }
 
-    const html = await response.text();
-    const parsedRate = parseIsbankUsdRate(html);
-
-    if (!parsedRate) {
-      throw new Error("USD kuru okunamadı.");
-    }
+    const parsedRate = await response.json();
 
     exchangeRate = {
-      ...parsedRate,
+      buy: parsedRate.buy,
+      sell: parsedRate.sell,
       source: "İş Bankası",
-      updatedAt: new Date().toISOString()
+      updatedAt: parsedRate.updatedAt || new Date().toISOString()
     };
 
     saveExchangeRate();
@@ -248,24 +243,6 @@ async function fetchIsbankRate() {
   } finally {
     fetchRateButton.disabled = false;
   }
-}
-
-function parseIsbankUsdRate(html) {
-  const normalizedText = html.replace(/\s+/g, " ");
-  const match = normalizedText.match(/USD\s+Amerikan Doları\s+([\d.,]+)\s+([\d.,]+)/i);
-
-  if (!match) {
-    return null;
-  }
-
-  return {
-    buy: parseTurkishNumber(match[1]),
-    sell: parseTurkishNumber(match[2])
-  };
-}
-
-function parseTurkishNumber(value) {
-  return Number(value.replace(/\./g, "").replace(",", "."));
 }
 
 function saveManualRate() {
